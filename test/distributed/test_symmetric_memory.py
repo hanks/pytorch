@@ -2000,7 +2000,7 @@ class TorchCommsCudaSymmMemTest(MultiProcContinuousTest):
 @skipIf(not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch")
 class ExternalNcclCommRegistrationTest(TestCase):
     """Tests for the external NCCL comm registration API
-    (``symm_mem._register_external_nccl_comm`` and the ``_NcclCommRegistration``
+    (``symm_mem.register_external_nccl_comm`` and the ``NcclCommRegistration``
     handle), exercised against a *real* ``ncclComm_t``.
 
     The comm is created in-process via NCCL's ``ncclCommInitAll`` (single
@@ -2050,10 +2050,10 @@ class ExternalNcclCommRegistrationTest(TestCase):
 
     def test_register_unregister_real_comm(self) -> None:
         comm_ptr = self._make_real_comm()
-        reg = symm_mem._register_external_nccl_comm(
+        reg = symm_mem.register_external_nccl_comm(
             "ext_nccl_reg_basic", comm_ptr, "cuda:0"
         )
-        self.assertIsInstance(reg, symm_mem._NcclCommRegistration)
+        self.assertIsInstance(reg, symm_mem.NcclCommRegistration)
         self.assertTrue(reg._active)
         self.assertEqual(reg._group_name, "ext_nccl_reg_basic")
         self.assertEqual(reg._device, torch.device("cuda:0"))
@@ -2068,7 +2068,7 @@ class ExternalNcclCommRegistrationTest(TestCase):
         # and releases it on unregister.
         comm_ptr = self._make_real_comm()
         sentinel = object()
-        reg = symm_mem._register_external_nccl_comm(
+        reg = symm_mem.register_external_nccl_comm(
             "ext_nccl_reg_ref", comm_ptr, "cuda:0", comm=sentinel
         )
         self.assertIs(reg._comm, sentinel)
@@ -2077,7 +2077,7 @@ class ExternalNcclCommRegistrationTest(TestCase):
 
     def test_context_manager_real_comm(self) -> None:
         comm_ptr = self._make_real_comm()
-        reg = symm_mem._register_external_nccl_comm(
+        reg = symm_mem.register_external_nccl_comm(
             "ext_nccl_reg_cm", comm_ptr, "cuda:0"
         )
         with reg as entered:
@@ -2096,7 +2096,7 @@ class ExternalNcclCommRegistrationTest(TestCase):
         except ImportError:
             self.skipTest("PyTorch built without NCCL symmetric-memory device support")
         with self.assertRaises(RuntimeError):
-            symm_mem._register_external_nccl_comm("ext_nccl_reg_null", 0, "cuda:0")
+            symm_mem.register_external_nccl_comm("ext_nccl_reg_null", 0, "cuda:0")
 
 
 if __name__ == "__main__":
